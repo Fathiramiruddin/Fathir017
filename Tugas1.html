@@ -55,7 +55,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin-top: 20px;
         }
         th, td {
             border: 1px solid #ddd;
@@ -67,37 +67,25 @@
             color: white;
         }
 
+        /* CSS untuk Modal Konfirmasi (Popup Buatan) */
         .modal {
-            display: none; 
+            display: none; /* Sembunyikan modal secara default */
             position: fixed;
             z-index: 10;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0,0,0,0.5); 
+            background-color: rgba(0,0,0,0.5); /* Efek gelap transparan di belakang */
         }
         .modal-content {
             background-color: #fff;
-            margin: 15% auto; 
+            margin: 15% auto; /* Jarak dari atas dan di tengah */
             padding: 20px;
             border-radius: 8px;
             width: 300px;
             text-align: center;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-        }
-
-        /* Tambahan CSS untuk kotak pencarian */
-        .search-box {
-            margin-bottom: 15px;
-            display: flex;
-            justify-content: flex-end;
-        }
-        .search-box input {
-            width: 50%;
-            padding: 8px;
-            border: 1px solid #007bff;
-            border-radius: 4px;
         }
     </style>
 </head>
@@ -120,7 +108,7 @@
                 <select id="prodi">
                     <option value="TRPL">Teknologi Rekayasa Perangkat Lunak</option>
                     <option value="TI">Teknik Informatika</option>
-                    <option value="SI">Sistem Informasi</option>
+                    <option value="SI">Ilmu Komunikasi</option>
                 </select>
             </div>
             <div class="form-group">
@@ -135,11 +123,6 @@
         <hr style="margin: 30px 0;">
 
         <h2>Daftar Mahasiswa</h2>
-        
-        <div class="search-box">
-            <input type="text" id="keywordCari" placeholder="🔍 Cari Nama atau NIM..." oninput="cariData()">
-        </div>
-
         <table>
             <thead>
                 <tr>
@@ -164,26 +147,26 @@
     </div>
 
     <script>
+        // Array untuk menyimpan data sementara
         let dataMahasiswa = [];
+        // Variabel untuk melacak data mana yang sedang diedit (-1 berarti sedang tambah data baru)
         let indexEdit = -1; 
+        // Variabel untuk melacak data mana yang akan dihapus saat modal muncul
         let indexHapus = -1;
 
-        // FITUR BARU: Modifikasi fungsi tampilkanTabel agar bisa menerima data hasil pencarian
-        function tampilkanTabel(dataYangDitampilkan = dataMahasiswa) {
+        // Fungsi untuk merender ulang isi tabel
+        function tampilkanTabel() {
             const tbody = document.getElementById('tabelBody');
-            tbody.innerHTML = ''; 
+            tbody.innerHTML = ''; // Kosongkan tabel sebelum diisi ulang
 
-            if (dataYangDitampilkan.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada data / Data tidak ditemukan</td></tr>';
+            if (dataMahasiswa.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Belum ada data</td></tr>';
                 return;
             }
 
-            for (let i = 0; i < dataYangDitampilkan.length; i++) {
-                let mhs = dataYangDitampilkan[i];
-                
-                // Cari index asli di array dataMahasiswa agar tombol edit/hapus tetap berfungsi
-                let indexAsli = dataMahasiswa.indexOf(mhs);
-
+            // Looping array dan buat baris tabel
+            for (let i = 0; i < dataMahasiswa.length; i++) {
+                let mhs = dataMahasiswa[i];
                 let baris = `
                     <tr>
                         <td>${mhs.nim}</td>
@@ -191,8 +174,8 @@
                         <td>${mhs.prodi}</td>
                         <td>${mhs.semester}</td>
                         <td>
-                            <button class="btn-edit" onclick="siapkanEdit(${indexAsli})">Edit</button>
-                            <button class="btn-hapus" onclick="hapusData(${indexAsli})">Hapus</button>
+                            <button class="btn-edit" onclick="siapkanEdit(${i})">Edit</button>
+                            <button class="btn-hapus" onclick="hapusData(${i})">Hapus</button>
                         </td>
                     </tr>
                 `;
@@ -200,42 +183,17 @@
             }
         }
 
-        // FITUR BARU: Fungsi untuk melakukan pencarian
-        function cariData() {
-            let keyword = document.getElementById('keywordCari').value.toLowerCase();
-            
-            // Saring (filter) data yang nama atau NIM-nya mengandung huruf yang diketik
-            let hasilPencarian = dataMahasiswa.filter(mhs => 
-                mhs.nama.toLowerCase().includes(keyword) || 
-                mhs.nim.toLowerCase().includes(keyword)
-            );
-
-            // Tampilkan tabel dengan data hasil pencarian saja
-            tampilkanTabel(hasilPencarian);
-        }
-
+        // Fungsi untuk menyimpan data (Tambah / Update)
         function simpanData(event) {
-            event.preventDefault(); 
+            event.preventDefault(); // Mencegah halaman reload saat form di-submit
 
+            // Ambil nilai dari form
             let inputNim = document.getElementById('nim').value;
             let inputNama = document.getElementById('nama').value;
             let inputProdi = document.getElementById('prodi').value;
             let inputSemester = document.getElementById('semester').value;
 
-            // Validasi NIM Duplikat (Fitur yang kamu minta sebelumnya)
-            let nimDuplikat = false;
-            for (let i = 0; i < dataMahasiswa.length; i++) {
-                if (dataMahasiswa[i].nim === inputNim && i !== indexEdit) {
-                    nimDuplikat = true;
-                    break;
-                }
-            }
-
-            if (nimDuplikat) {
-                alert("Gagal menyimpan! NIM tersebut sudah terdaftar.");
-                return; 
-            }
-
+            // Buat objek data baru
             let mahasiswaBaru = {
                 nim: inputNim,
                 nama: inputNama,
@@ -244,17 +202,19 @@
             };
 
             if (indexEdit === -1) {
+                // Jika indexEdit -1, berarti kita menambah data baru
                 dataMahasiswa.push(mahasiswaBaru);
             } else {
+                // Jika tidak, berarti kita menimpa (update) data yang sudah ada
                 dataMahasiswa[indexEdit] = mahasiswaBaru;
             }
 
+            // Bersihkan form dan perbarui tabel
             resetForm();
-            // Kosongkan kolom pencarian setiap kali menyimpan data baru
-            document.getElementById('keywordCari').value = ''; 
             tampilkanTabel();
         }
 
+        // Fungsi untuk mengambil data ke dalam form saat tombol Edit ditekan
         function siapkanEdit(index) {
             let mhs = dataMahasiswa[index];
             
@@ -263,36 +223,44 @@
             document.getElementById('prodi').value = mhs.prodi;
             document.getElementById('semester').value = mhs.semester;
 
-            indexEdit = index; 
+            indexEdit = index; // Tandai bahwa kita sedang mengedit index ini
             document.getElementById('btnSimpan').innerText = "Update Data";
         }
 
+        // ================= BAGIAN HAPUS DATA =================
+        
+        // 1. Munculkan modal ketika tombol Hapus ditekan
         function hapusData(index) {
-            indexHapus = index; 
-            document.getElementById('modalKonfirmasi').style.display = 'block'; 
+            indexHapus = index; // Simpan index data yang ingin dihapus
+            document.getElementById('modalKonfirmasi').style.display = 'block'; // Tampilkan modal
         }
 
+        // 2. Eksekusi hapus jika pengguna menekan "Ya, Hapus"
         function prosesHapus() {
             if (indexHapus !== -1) {
-                dataMahasiswa.splice(indexHapus, 1); 
-                document.getElementById('keywordCari').value = ''; // Reset pencarian
+                dataMahasiswa.splice(indexHapus, 1); // Hapus 1 elemen pada index tersebut
                 tampilkanTabel();
-                resetForm(); 
-                tutupModal(); 
+                resetForm(); // Reset form untuk berjaga-jaga jika sedang mengedit data yang dihapus
+                tutupModal(); // Sembunyikan modal kembali
             }
         }
 
+        // 3. Sembunyikan modal jika pengguna menekan "Tidak"
         function tutupModal() {
             document.getElementById('modalKonfirmasi').style.display = 'none';
-            indexHapus = -1; 
+            indexHapus = -1; // Reset index hapus
         }
 
+        // =======================================================
+
+        // Fungsi untuk mengembalikan form ke keadaan kosong
         function resetForm() {
             document.getElementById('formMahasiswa').reset();
-            indexEdit = -1; 
+            indexEdit = -1; // Kembalikan status ke 'tambah data'
             document.getElementById('btnSimpan').innerText = "Simpan Data";
         }
 
+        // Panggil fungsi tampilkanTabel saat halaman pertama kali dibuka
         tampilkanTabel();
 
     </script>
