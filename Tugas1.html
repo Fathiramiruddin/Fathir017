@@ -94,7 +94,6 @@
     <div class="container">
         <h2>Sistem Informasi Biodata Mahasiswa</h2>
         
-        <!-- Form Input Data -->
         <form id="formMahasiswa" onsubmit="simpanData(event)">
             <div class="form-group">
                 <label>NIM:</label>
@@ -109,7 +108,7 @@
                 <select id="prodi">
                     <option value="TRPL">Teknologi Rekayasa Perangkat Lunak</option>
                     <option value="TI">Teknik Informatika</option>
-                    <option value="SI">Sistem Informasi</option>
+                    <option value="SI">Ilmu Komunikasi</option>
                 </select>
             </div>
             <div class="form-group">
@@ -123,7 +122,6 @@
 
         <hr style="margin: 30px 0;">
 
-        <!-- Tabel Tampil Data -->
         <h2>Daftar Mahasiswa</h2>
         <table>
             <thead>
@@ -136,12 +134,10 @@
                 </tr>
             </thead>
             <tbody id="tabelBody">
-                <!-- Data akan dimunculkan di sini oleh JavaScript -->
-            </tbody>
+                </tbody>
         </table>
     </div>
 
-    <!-- Elemen Modal Konfirmasi Hapus -->
     <div id="modalKonfirmasi" class="modal">
         <div class="modal-content">
             <p style="margin-bottom: 20px; font-weight: bold;">Apakah Anda yakin ingin menghapus data ini?</p>
@@ -150,7 +146,6 @@
         </div>
     </div>
 
-    <!-- Logika JavaScript Sederhana -->
     <script>
         // Array untuk menyimpan data sementara
         let dataMahasiswa = [];
@@ -197,6 +192,22 @@
             let inputNama = document.getElementById('nama').value;
             let inputProdi = document.getElementById('prodi').value;
             let inputSemester = document.getElementById('semester').value;
+
+            // ================= TAMBAHAN FITUR: VALIDASI NIM DUPLIKAT =================
+            let nimDuplikat = false;
+            for (let i = 0; i < dataMahasiswa.length; i++) {
+                // Cek apakah ada NIM yang sama, tapi abaikan jika itu adalah data yang sedang diedit
+                if (dataMahasiswa[i].nim === inputNim && i !== indexEdit) {
+                    nimDuplikat = true;
+                    break;
+                }
+            }
+
+            if (nimDuplikat) {
+                alert("Gagal menyimpan! NIM tersebut sudah terdaftar.");
+                return; // Hentikan fungsi di sini, data tidak akan disimpan
+            }
+            // =========================================================================
 
             // Buat objek data baru
             let mahasiswaBaru = {
